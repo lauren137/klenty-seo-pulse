@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Klenty SEO Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Klenty-app shell — dark left rail, light work area; KPI strip → trend + alerts → page table */
+:root{
+  --brand:#504EE4; --brand-soft:#EEEEFD; --brand-ink:#3532B8;
+  --rail:#FFFFFF; --rail-ink:#5A5A78; --rail-active:#EEEEFD;
+  --bg:#F5F5FA; --surface:#FFFFFF; --surface-2:#FAFAFD;
+  --ink:#1A1A2E; --muted:#6A6A86; --faint:#9A9AB4; --line:#E5E5EF;
+  --good:#0F9D63; --good-soft:#E3F6EE; --bad:#E0434A; --bad-soft:#FCE9EA; --warn:#C98516; --warn-soft:#FBF1DE;
+  --prev:#B8B8D0;
+  --sans:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+.rail{border-right:1px solid var(--line);background:var(--rail);color:var(--rail-ink);padding:20px 14px;display:flex;flex-direction:column;gap:24px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh}
+.logo{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:600;font-size:16px;padding:0 8px}
+.logo b{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#6C6AF7,#504EE4);display:grid;place-items:center;font-size:15px;color:#fff}
+.logo small{display:block;font-size:11px;font-weight:500;color:var(--rail-ink);letter-spacing:.04em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13.5px;color:var(--rail-ink)}
+.nav button:hover{background:var(--surface-2);color:var(--ink)}
+.nav button[aria-current="true"]{background:var(--rail-active);color:var(--brand-ink);font-weight:600;box-shadow:inset 3px 0 0 var(--brand)}
+.nav svg{width:16px;height:16px;flex:none}
+.nav .count{margin-left:auto;font-size:11px;background:var(--bad);color:#fff;border-radius:10px;padding:1px 7px;font-family:var(--mono)}
+.nav .count[data-zero]{display:none}
+.rail-foot{margin-top:auto;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;padding:0 8px}
+.src{display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+.dot.ok{background:var(--good);box-shadow:0 0 0 3px var(--good-soft)}
+.dot.err{background:var(--bad)}
+.dot.wait{background:var(--warn)}
+
+.main{padding-block:20px 48px;padding-inline:28px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--bg);padding-block:14px 12px;margin-block:-14px 0;border-bottom:1px solid var(--line)}
+.top h1{margin:0;font-size:20px;font-weight:650;letter-spacing:-.01em;text-wrap:balance}
+.top .sub{color:var(--muted);font-size:12.5px}
+.top .spacer{flex:1}
+.range-wrap{position:relative}
+.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(26,26,46,.14);padding:14px;display:flex;flex-direction:column;gap:10px;width:min(300px,calc(100vw - 32px))}
+.pop .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pop label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted);font-weight:500}
+.pop input[type=date]{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;background:var(--surface-2);min-width:0}
+.pop .presets{display:flex;flex-wrap:wrap;gap:6px}
+.pop .row{display:flex;gap:8px;justify-content:flex-end}
+.pop .note{font-size:11.5px;color:var(--muted);margin:0}
+.pop .err{font-size:12px;color:var(--bad);margin:0}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{all:unset;cursor:pointer;padding:5px 11px;border-radius:6px;font-size:12.5px;color:var(--muted);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--brand);color:#fff}
+.toggle{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+.toggle input{accent-color:var(--brand)}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;background:var(--brand);color:#fff;font-size:12.5px;font-weight:600}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn svg{width:14px;height:14px}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+.banner{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.banner h3{margin:0 0 4px;font-size:14px}
+.banner p{margin:0;color:var(--muted);font-size:13px;max-width:70ch}
+.banner .actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.banner.sample{background:var(--warn-soft);border-color:transparent}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .lab{font-size:11.5px;color:var(--muted);font-weight:500;letter-spacing:.03em;text-transform:uppercase;display:flex;justify-content:space-between;gap:6px}
+.kpi .lab span:last-child{text-transform:none;letter-spacing:0;color:var(--faint)}
+.kpi .val{font-size:24px;font-weight:650;letter-spacing:-.02em}
+.kpi .row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.kpi svg.spark{width:100%;height:30px;margin-top:2px}
+.kpi.live .val{display:flex;align-items:center;gap:8px}
+.pulse{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(15,157,99,.5);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(15,157,99,0)}100%{box-shadow:0 0 0 0 rgba(15,157,99,0)}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+.live-list{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.live-list div{display:flex;gap:6px;justify-content:space-between}
+.live-list span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
+.delta{display:inline-flex;align-items:center;gap:2px;font-weight:600;font-size:12px;padding:1px 6px;border-radius:6px;font-family:var(--mono)}
+.delta.up{color:var(--good);background:var(--good-soft)}
+.delta.down{color:var(--bad);background:var(--bad-soft)}
+.delta.flat{color:var(--muted);background:var(--surface-2)}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:14.5px;font-weight:600}
+.card-h .hint{font-size:12px;color:var(--muted)}
+.card-h .spacer{flex:1}
+.card-b{padding:14px 16px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:5px;background:var(--brand)}
+.legend i.prev{background:none;border-top:2px dashed var(--prev);height:0}
+#chart{width:100%;height:240px;display:block}
+#chart text{fill:var(--faint);font-size:10.5px;font-family:var(--mono)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;padding:6px 9px;border-radius:7px;white-space:nowrap;transform:translate(-50%,-110%)}
+.chart-wrap{position:relative}
+
+.alerts{display:flex;flex-direction:column;max-height:330px;overflow:auto}
+.main[data-view="alerts"] .grid2{grid-template-columns:minmax(0,1fr)}
+.main[data-view="alerts"] .alerts{max-height:none}
+.al{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);align-items:center}
+.al:last-child{border-bottom:0}
+.al .stripe{align-self:stretch;border-radius:3px}
+.al.down .stripe{background:var(--bad)} .al.up .stripe{background:var(--good)}
+.al .u{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.al .m{font-size:12px;color:var(--muted)}
+.al-tabs{display:flex;gap:6px}
+.chip{all:unset;cursor:pointer;font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--line);color:var(--muted);font-weight:500}
+.chip[aria-pressed="true"]{border-color:var(--brand);color:var(--brand-ink);background:var(--brand-soft)}
+.empty{padding:28px 16px;color:var(--muted);font-size:13px;text-align:center}
+
+.tbl-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:5px 10px;min-width:0;flex:1 1 200px;max-width:320px}
+.search input{border:0;background:none;outline:0;width:100%;font-size:13px}
+.search svg{width:14px;height:14px;color:var(--faint);flex:none}
+select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 8px;font-size:12.5px}
+.tbl-scroll{overflow:auto;max-height:calc(100vh - 210px);min-height:240px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1060px}
+th{position:sticky;top:0;z-index:2;background:var(--surface-2);text-align:right;font-weight:600;font-size:11.5px;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}
+th:first-child,td:first-child{text-align:left}
+th[aria-sort] span::after{content:" ↓";color:var(--brand)}
+th[aria-sort="ascending"] span::after{content:" ↑"}
+td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--surface-2)}
+td.url{max-width:340px;overflow:hidden;text-overflow:ellipsis}
+td.url a{color:var(--ink);text-decoration:none;font-weight:500}
+td.url a:hover{color:var(--brand)}
+td .d{display:block;font-size:11px;font-family:var(--mono)}
+td .d.up{color:var(--good)} td .d.down{color:var(--bad)} td .d.flat{color:var(--faint)}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:5px;margin-right:6px;vertical-align:1px;letter-spacing:.02em}
+.tag.blog{background:var(--brand-soft);color:var(--brand-ink)}
+.tag.page{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.pill.down{background:var(--bad-soft);color:var(--bad)}
+.pill.up{background:var(--good-soft);color:var(--good)}
+.pill.flat{background:var(--surface-2);color:var(--muted)}
+.pill.new{background:var(--brand-soft);color:var(--brand-ink)}
+.cp-tools{border-bottom:1px solid var(--line)}
+.cp-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cp-chips .chip{display:inline-flex;align-items:center;gap:5px}
+.pager{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:12.5px;color:var(--muted);gap:10px;flex-wrap:wrap}
+.sec-err{margin:10px 16px;padding:8px 12px;border-radius:8px;background:var(--bad-soft);color:var(--bad);font-size:12.5px}
+.skel{color:transparent!important;background:linear-gradient(90deg,var(--line),var(--surface-2),var(--line));background-size:200% 100%;border-radius:6px;animation:sh 1.4s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.foot{font-size:12px;color:var(--faint)}
+
+@media (max-width:1100px){.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px 16px;gap:12px}
+  .nav{flex-direction:row;flex-wrap:wrap}
+  .rail-foot{display:none}
+  .main{padding-inline:16px}
+}
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <div class="logo"><b>K</b><div>Klenty<small>SEO PULSE</small></div></div>
+    <nav class="nav" aria-label="Sections">
+      <button data-view="overview" aria-current="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Overview</button>
+      <button data-view="page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 2h7l3 3v9H3z"/><path d="M10 2v3h3"/></svg>Pages</button>
+      <button data-view="blog"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h12M2 7h12M2 11h8"/></svg>Blogs</button>
+      <button data-view="countries"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.8 1.7 2.6 3.7 2.6 6S9.8 12.3 8 14M8 2C6.2 3.7 5.4 5.7 5.4 8S6.2 12.3 8 14"/></svg>Countries</button>
+      <button data-view="alerts"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2a4 4 0 0 0-4 4v3l-1.5 2h11L12 9V6a4 4 0 0 0-4-4zM6.5 13a1.5 1.5 0 0 0 3 0"/></svg>Alerts <span class="count num" id="navCount" data-zero>0</span></button>
+    </nav>
+    <div class="rail-foot">
+      <div class="src"><span class="dot" id="dotGa"></span>Google Analytics 4</div>
+      <div class="src"><span class="dot" id="dotGsc"></span>Search Console</div>
+      <div id="syncAge"></div>
+    </div>
+  </aside>
+
+  <main class="main" id="main" data-view="overview">
+    <div class="top">
+      <div>
+        <h1 id="viewTitle">Overview</h1>
+        <div class="sub" id="rangeLabel">Connecting to your analytics…</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="range-wrap">
+        <div class="seg" role="group" aria-label="Date range" id="rangeSeg">
+          <button data-days="7">7D</button><button data-days="28" aria-pressed="true">28D</button><button data-days="90">90D</button><button data-days="custom" id="customBtn">Custom</button>
+        </div>
+        <form class="pop" id="customPop" hidden>
+          <div class="presets">
+            <button type="button" class="chip" data-preset="mtd">This month</button>
+            <button type="button" class="chip" data-preset="lm">Last month</button>
+            <button type="button" class="chip" data-preset="l6m">Last 6 months</button>
+            <button type="button" class="chip" data-preset="l12m">Last 12 months</button>
+          </div>
+          <div class="fields">
+            <label for="cFrom">From<input type="date" id="cFrom" required></label>
+            <label for="cTo">To<input type="date" id="cTo" required></label>
+          </div>
+          <p class="note">Compared with the previous period of the same length. Search Console data for the last 3 days isn't available yet.</p>
+          <p class="err" id="cErr" hidden></p>
+          <div class="row"><button type="button" class="btn ghost" id="cCancel">Cancel</button><button type="submit" class="btn">Apply</button></div>
+        </form>
+      </div>
+      <span class="toggle" title="Singapore and China sessions are excluded; they are mostly bot traffic on klenty.com"><span class="dot ok"></span>Bot traffic filtered</span>
+      <span class="toggle" id="syncNote" hidden><span class="dot wait"></span><span id="syncNoteText"></span></span>
+    </div>
+
+    <div id="banner" hidden></div>
+
+    <section class="kpis" id="kpis" aria-label="Key metrics"></section>
+    <section class="kpis" id="segKpis" aria-label="Section totals" hidden></section>
+
+    <div class="grid2" id="overviewGrid">
+      <section class="card" id="trendCard">
+        <div class="card-h">
+          <h2>Trend</h2>
+          <div class="seg" role="group" aria-label="Trend metric" id="trendSeg">
+            <button data-m="org" aria-pressed="true">Organic sessions</button><button data-m="tot">Total sessions</button><button data-m="clicks">Clicks</button><button data-m="impr">Impressions</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="legend"><span><i></i>This period</span><span><i class="prev"></i>Previous period</span></div>
+        </div>
+        <div class="card-b chart-wrap"><svg id="chart" role="img" aria-label="Daily trend chart"></svg><div class="tip" id="tip" hidden></div></div>
+        <div id="trendErr"></div>
+      </section>
+
+      <section class="card" id="alertsCard">
+        <div class="card-h">
+          <h2>Alerts</h2>
+          <span class="hint" id="alertHint"></span>
+          <div class="spacer"></div>
+          <div class="al-tabs" role="group" aria-label="Alert type" id="alertType" hidden>
+            <button class="chip" data-at="all" aria-pressed="true">All</button>
+            <button class="chip" data-at="page">Pages</button>
+            <button class="chip" data-at="blog">Blogs</button>
+          </div>
+          <div class="al-tabs" role="group" aria-label="Alert filter">
+            <button class="chip" data-af="down" aria-pressed="true">Dropping <span id="cDown" class="num">0</span></button>
+            <button class="chip" data-af="up">Improving <span id="cUp" class="num">0</span></button>
+          </div>
+        </div>
+        <div class="alerts" id="alerts"><div class="empty">Alerts appear here once data loads.</div></div>
+      </section>
+    </div>
+
+    <section class="card" id="cpCard">
+      <div class="card-h">
+        <h2 id="cpTitle">Top pages by country</h2>
+        <span class="hint" id="cpHint"></span>
+      </div>
+      <div class="card-h cp-tools">
+        <div class="cp-chips" role="group" aria-label="Country" id="cpChips"></div>
+        <div class="spacer"></div>
+        <div class="seg" role="group" aria-label="Page type" id="cpType"><button data-ct="all" aria-pressed="true">All</button><button data-ct="page">Pages</button><button data-ct="blog">Blogs</button></div>
+        <label class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input id="cpq" type="search" placeholder="Filter pages, e.g. parallel" aria-label="Filter pages in this country"></label>
+      </div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr id="cpthead"></tr></thead>
+          <tbody id="cptbody"></tbody>
+        </table>
+      </div>
+      <div class="pager"><span id="cpInfo"></span></div>
+    </section>
+
+    <section class="card" id="tableCard">
+      <div class="card-h">
+        <h2 id="tableTitle">All URLs</h2>
+        <span class="hint" id="tableHint"></span>
+        <div class="spacer"></div>
+        <div class="tbl-tools">
+          <label class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input id="q" type="search" placeholder="Filter URLs…" aria-label="Filter URLs"></label>
+          <select id="statusSel" aria-label="Status filter"><option value="">All statuses</option><option value="down">Dropping</option><option value="up">Improving</option><option value="new">New</option><option value="flat">Stable</option></select>
+          <select id="thrSel" aria-label="Alert threshold"><option value="15">±15% threshold</option><option value="25" selected>±25% threshold</option><option value="40">±40% threshold</option></select>
+        </div>
+      </div>
+      <div id="tableErr"></div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr id="thead"></tr></thead>
+          <tbody id="tbody"><tr><td colspan="10" class="empty" style="text-align:center">Pages and blogs load here with organic and total traffic, clicks, impressions and bounce rate.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pager"><span id="pageInfo"></span><span><button class="btn ghost" id="prevPg">Previous</button> <button class="btn ghost" id="nextPg">Next</button></span></div>
+    </section>
+
+    <p class="foot">Data syncs from Google Analytics 4 and Search Console every 3 hours. GA4 sessions use the landing page. Search Console data lags 2–3 days, so its window ends 3 days ago. Deltas compare against the previous period of equal length.</p>
+  </main>
+</div>
+
+<script>
+(() => {
+const SITE = "https://www.klenty.com";
+
+const S = { cpC: "US", cpT: "all", cpq: "", cpSort: "orgS", cpAsc: false, cp: null, custom: null, days: 28, trend: "org", view: "overview", at: "all", af: "down", thr: 25, q: "", status: "",
+  sort: "orgS", asc: false, page: 0, rows: [], series: null, kpi: null, rt: null, sample: false };
+try { const v = JSON.parse(localStorage.getItem("seoPulse") || "{}"); Object.assign(S, pick(v, ["days","trend","thr","view"])); } catch (e) {}
+function pick(o, ks){ const r = {}; ks.forEach(k => { if (o[k] !== undefined) r[k] = o[k]; }); return r; }
+function save(){ try { localStorage.setItem("seoPulse", JSON.stringify(pick(S, ["days","trend","thr","view"]))); } catch (e) {} }
+
+const $ = id => document.getElementById(id);
+const fmt = n => n == null || isNaN(n) ? "–" : Math.abs(n) >= 1e6 ? (n/1e6).toFixed(1)+"M" : Math.abs(n) >= 1e4 ? (n/1e3).toFixed(1)+"k" : Math.round(n).toLocaleString("en-US");
+const pctFmt = n => n == null || isNaN(n) ? "–" : (n*100).toFixed(1) + "%";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- helpers ---------- */
+const iso = d => d.toISOString().slice(0,10);
+const todayUTC = () => { const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); };
+const shortDate = s => new Date(s + "T00:00:00Z").toLocaleDateString([], { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" });
+// Must match snapshot.py preset_windows(): the sync prebuilds these so they always have full tables
+function presetRanges(){
+  const t = todayUTC(), y = t.getUTCFullYear(), m = t.getUTCMonth(), yest = iso(addDays(t, -1));
+  const r = {
+    lm: [iso(new Date(Date.UTC(y, m - 1, 1))), iso(new Date(Date.UTC(y, m, 0)))],
+    l6m: [iso(addDays(t, -182)), yest],
+    l12m: [iso(addDays(t, -365)), yest],
+  };
+  if (t.getUTCDate() > 1) r.mtd = [iso(new Date(Date.UTC(y, m, 1))), yest];
+  return r;
+}
+const presetId = () => { if (!S.custom) return null; const r = presetRanges(); return Object.keys(r).find(k => r[k][0] === S.custom.start && r[k][1] === S.custom.end) || null; };
+const dayDiff = (a, b) => Math.round((new Date(b + "T00:00:00Z") - new Date(a + "T00:00:00Z")) / 864e5);
+function addDays(d, n){ const x = new Date(d); x.setUTCDate(x.getUTCDate()+n); return x; }
+
+const typeOf = p => p.startsWith("/blog/") || p === "/blog" ? "blog" : "page";
+
+/* ---------- alerts / status ---------- */
+const ch = (a) => a[1] ? (a[0]-a[1])/a[1] : (a[0] ? Infinity : 0);
+function classify(o){
+  const t = S.thr/100, sig = [];
+  const test = (name, a, min, label) => {
+    if (Math.max(a[0],a[1]) < min) return;
+    const c = ch(a); if (c === Infinity) return;
+    if (c <= -t) sig.push({ dir:"down", name, label, c, a });
+    else if (c >= t) sig.push({ dir:"up", name, label, c, a });
+  };
+  test("orgS", o.orgS, 20, "organic sessions");
+  test("clicks", o.clicks, 10, "clicks");
+  test("impr", o.impr, 300, "impressions");
+  if (o.pos[0] != null && o.pos[1] != null && Math.max(o.impr[0],o.impr[1]) >= 300) {
+    const d = o.pos[0] - o.pos[1];
+    if (d >= 3) sig.push({ dir:"down", name:"pos", label:"avg position", c:d, pos:true, a:o.pos });
+    else if (d <= -3) sig.push({ dir:"up", name:"pos", label:"avg position", c:d, pos:true, a:o.pos });
+  }
+  const isNew = (o.orgS[1] === 0 && o.clicks[1] === 0 && (o.orgS[0] >= 10 || o.clicks[0] >= 5));
+  const lost = (o.orgS[0] === 0 && o.clicks[0] === 0 && (o.orgS[1] >= 20 || o.clicks[1] >= 10));
+  if (lost) sig.unshift({ dir:"down", name:"lost", label:"all organic traffic", c:-1, a:o.orgS });
+  const down = sig.filter(x => x.dir === "down").length, up = sig.filter(x => x.dir === "up").length;
+  o.sig = sig;
+  o.status = isNew ? "new" : down > up ? "down" : up > down ? "up" : down && up ? (ch(o.orgS) < 0 ? "down" : "up") : "flat";
+  return o;
+}
+
+/* ---------- render ---------- */
+function deltaHTML(cur, prev, opts = {}){
+  if (cur == null || prev == null || (prev === 0 && cur === 0)) return `<span class="delta flat">–</span>`;
+  let v, txt;
+  if (opts.abs) { v = cur - prev; txt = (v>0?"+":"") + v.toFixed(1); }
+  else if (opts.pp) { v = (cur - prev)*100; txt = (v>0?"+":"") + v.toFixed(1) + "pp"; }
+  else { if (!prev) return `<span class="delta up">new</span>`; v = (cur-prev)/prev; txt = (v>0?"+":"") + (v*100).toFixed(1) + "%"; }
+  const good = opts.invert ? v < 0 : v > 0;
+  const cls = Math.abs(v) < (opts.abs ? 0.1 : opts.pp ? 0.1 : 0.005) ? "flat" : good ? "up" : "down";
+  return `<span class="delta ${cls}">${v>0?"▲":v<0?"▼":""}${txt.replace(/^[+-]/,"")}</span>`;
+}
+function spark(pts){
+  const v = (pts||[]).map(p => p.v).filter(x => x != null);
+  if (v.length < 2) return "";
+  const W=160,H=30, mx=Math.max(...v), mn=Math.min(...v), r=(mx-mn)||1;
+  const xy = v.map((y,i) => [i*(W/(v.length-1)), H-3-((y-mn)/r)*(H-6)]);
+  const d = xy.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("");
+  const last = xy[xy.length-1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}L${W},${H}L0,${H}Z" fill="var(--brand-soft)"/><path d="${d}" fill="none" stroke="var(--brand)" stroke-width="1.5" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="var(--brand)"/></svg>`;
+}
+function renderKpis(){
+  const k = S.kpi, sr = S.series || {};
+  const skel = !k;
+  const tile = (lab, val, d, sp, sub="") => `<div class="kpi"><div class="lab"><span>${lab}</span><span>${sub}</span></div><div class="val num ${skel?"skel":""}">${val}</div><div class="row">${skel?"":d} <span>${skel?"":"vs prev"}</span></div>${sp||'<svg class="spark"></svg>'}</div>`;
+  const ctr = k && k.impr[0] ? k.clicks[0]/k.impr[0] : null, ctrP = k && k.impr[1] ? k.clicks[1]/k.impr[1] : null;
+  const rt = S.rt;
+  const live = `<div class="kpi live"><div class="lab"><span>Active users</span><span>30 min to last sync</span></div><div class="val num">${rt ? `<span class="pulse"></span>${fmt(rt.total)}` : S.kpi ? "–" : '<span class="skel">000</span>'}</div><div class="live-list">${rt ? rt.top.slice(0,3).map(t => `<div><span title="${esc(t.n)}">${esc(t.n.replace(/\s*\|\s*Klenty$/,""))}</span><span class="num">${t.v}</span></div>`).join("") : ""}</div></div>`;
+  $("kpis").innerHTML =
+    tile("Organic sessions", k?fmt(k.org[0]):"0000", k&&deltaHTML(k.org[0],k.org[1]), k&&spark(sr.org&&sr.org.cur), "GA4") +
+    tile("Total sessions", k?fmt(k.tot[0]):"0000", k&&deltaHTML(k.tot[0],k.tot[1]), k&&spark(sr.tot&&sr.tot.cur), "all channels") +
+    tile("Clicks", k?fmt(k.clicks[0]):"0000", k&&deltaHTML(k.clicks[0],k.clicks[1]), k&&spark(sr.clicks&&sr.clicks.cur), "GSC") +
+    tile("Impressions", k?fmt(k.impr[0]):"0000", k&&deltaHTML(k.impr[0],k.impr[1]), k&&spark(sr.impr&&sr.impr.cur), "GSC") +
+    tile("Organic bounce rate", k?pctFmt(k.bOrg[0]):"00%", k&&deltaHTML(k.bOrg[0],k.bOrg[1],{pp:true,invert:true}), "", k?`all: ${pctFmt(k.bTot[0])}`:"") +
+    tile("CTR · Avg position", k?`${pctFmt(ctr)} · ${k.pos[0]!=null?k.pos[0].toFixed(1):"–"}`:"0% · 0", k&&deltaHTML(k.pos[0],k.pos[1],{abs:true,invert:true}), "", "position Δ") +
+    live;
+}
+
+function renderChart(){
+  const svg = $("chart"); const sr = S.series && S.series[S.trend];
+  const W = svg.clientWidth || 700, H = 240, L = 44, Rr = 10, T = 12, B = 26;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  if (!sr) { svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle">Daily data appears here</text>`; return; }
+  const cur = sr.cur.map(p=>p.v), prev = sr.prev.map(p=>p.v);
+  const all = cur.concat(prev).filter(v=>v!=null);
+  const mxRaw = Math.max(1, ...all), step = niceStep(mxRaw/4), mx = step*Math.ceil(mxRaw/step);
+  const n = cur.length, x = i => L + (n<2?0:i*(W-L-Rr)/(n-1)), y = v => T + (H-T-B)*(1 - v/mx);
+  let g = "";
+  for (let t=0; t<=mx+1e-9; t+=step) g += `<line x1="${L}" x2="${W-Rr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(t)+3.5}" text-anchor="end">${fmt(t)}</text>`;
+  const ticks = Math.min(6, n); for (let j=0;j<ticks;j++){ const i = Math.round(j*(n-1)/Math.max(1,ticks-1)); const d = sr.cur[i].d; g += `<text x="${x(i)}" y="${H-8}" text-anchor="${j===0?"start":j===ticks-1?"end":"middle"}">${d.slice(5)}</text>`; }
+  const path = arr => arr.map((v,i)=> v==null?"":`${i&&arr[i-1]!=null?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
+  const pc = path(cur);
+  g += `<path d="${path(prev)}" fill="none" stroke="var(--prev)" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+  const lastI = cur.length-1;
+  g += `<path d="${pc}L${x(lastI)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--brand)" fill-opacity=".1"/><path d="${pc}" fill="none" stroke="var(--brand)" stroke-width="2"/>`;
+  if (cur[lastI]!=null) g += `<circle cx="${x(lastI)}" cy="${y(cur[lastI])}" r="3.5" fill="var(--brand)" stroke="var(--surface)" stroke-width="2"/>`;
+  g += `<line id="hair" y1="${T}" y2="${H-B}" stroke="var(--faint)" stroke-width="1" visibility="hidden"/><rect x="${L}" y="${T}" width="${W-L-Rr}" height="${H-T-B}" fill="transparent" id="hit"/>`;
+  svg.innerHTML = g;
+  const tip = $("tip"), hair = svg.querySelector("#hair");
+  svg.querySelector("#hit").onmousemove = ev => {
+    const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * (W / r.width);
+    const i = Math.max(0, Math.min(n-1, Math.round((px-L)/((W-L-Rr)/(n-1)))));
+    hair.setAttribute("x1", x(i)); hair.setAttribute("x2", x(i)); hair.setAttribute("visibility","visible");
+    tip.hidden = false; tip.style.left = (x(i)*r.width/W + 16) + "px"; tip.style.top = (y(cur[i]||0)*r.height/H + 14) + "px";
+    tip.innerHTML = `<b>${sr.cur[i].d}</b> ${fmt(cur[i])}<br><span style="opacity:.7">${sr.prev[i].d} ${fmt(prev[i])}</span>`;
+  };
+  svg.querySelector("#hit").onmouseleave = () => { tip.hidden = true; hair.setAttribute("visibility","hidden"); };
+}
+function niceStep(v){ const p = Math.pow(10, Math.floor(Math.log10(v||1))), f = v/p; return (f<=1?1:f<=2?2:f<=5?5:10)*p; }
+
+function renderAlerts(){
+  const rows = S.rows.map(classify);
+  const items = [];
+  rows.forEach(o => { if (S.view === "alerts" && S.at !== "all" && o.type !== S.at) return; o.sig.forEach(s => items.push({ o, s })); });
+  const down = items.filter(i => i.s.dir === "down"), up = items.filter(i => i.s.dir === "up");
+  const mag = i => i.s.pos ? Math.abs(i.s.c)*10 : Math.abs(i.s.c) * Math.log10(10 + Math.max(...i.s.a));
+  down.sort((a,b)=>mag(b)-mag(a)); up.sort((a,b)=>mag(b)-mag(a));
+  $("cDown").textContent = down.length; $("cUp").textContent = up.length;
+  const nc = $("navCount"); nc.textContent = down.length; down.length ? nc.removeAttribute("data-zero") : nc.setAttribute("data-zero","");
+  $("alertHint").textContent = S.rows.length ? `±${S.thr}% vs previous ${S.custom ? "period" : S.days + "d"}` : "";
+  const list = S.af === "down" ? down : up;
+  $("alerts").innerHTML = !S.rows.length ? `<div class="empty">Alerts appear here once data loads.</div>` :
+    !list.length ? `<div class="empty">No URLs ${S.af==="down"?"dropping":"improving"} past ±${S.thr}% this period.</div>` :
+    list.slice(0,60).map(({o,s}) => {
+      const chg = s.pos ? `${s.c>0?"down":"up"} ${Math.abs(s.c).toFixed(1)} positions (${s.a[1].toFixed(1)} → ${s.a[0].toFixed(1)})`
+        : s.name === "lost" ? `lost all organic traffic (was ${fmt(s.a[1])} sessions)`
+        : `${(s.c*100>0?"+":"")}${(s.c*100).toFixed(0)}% ${s.label} (${fmt(s.a[1])} → ${fmt(s.a[0])})`;
+      return `<div class="al ${s.dir}"><span class="stripe"></span><div style="min-width:0"><div class="u" title="${esc(o.p)}"><span class="tag ${o.type}">${o.type==="blog"?"BLOG":"PAGE"}</span>${esc(o.p)}</div><div class="m">${chg}</div></div><a class="btn ghost" style="padding:4px 9px;font-size:11.5px" href="${SITE}${esc(o.p)}" target="_blank" rel="noopener">Open</a></div>`;
+    }).join("");
+}
+
+const COLS = [
+  { k:"p", l:"URL" },
+  { k:"orgS", l:"Organic sessions" },
+  { k:"totS", l:"Total sessions" },
+  { k:"clicks", l:"Clicks" },
+  { k:"impr", l:"Impressions" },
+  { k:"ctr", l:"CTR" },
+  { k:"pos", l:"Avg position" },
+  { k:"bOrg", l:"Bounce (organic)" },
+  { k:"eng", l:"Engagement" },
+  { k:"status", l:"Status" },
+];
+const PER = 50;
+function val(o,k){
+  if (k === "p") return o.p;
+  if (k === "ctr") return o.impr[0] ? o.clicks[0]/o.impr[0] : -1;
+  if (k === "status") return { down:0, up:1, new:2, flat:3 }[o.status];
+  const v = o[k][0]; return v == null ? (k === "pos" ? 999 : -1) : v;
+}
+const cellDelta = (cur, prev, o={}) => { if (cur == null || prev == null) return ""; if (o.abs){ const v = cur-prev; if (Math.abs(v)<.1) return `<span class="d flat">–</span>`; const good = v<0; return `<span class="d ${good?"up":"down"}">${v>0?"▼":"▲"} ${Math.abs(v).toFixed(1)}</span>`; }
+    if (o.pp){ const v=(cur-prev)*100; if (Math.abs(v)<.5) return `<span class="d flat">–</span>`; return `<span class="d ${v<0?"up":"down"}">${v>0?"+":""}${v.toFixed(1)}pp</span>`; }
+    if (!prev) return cur ? `<span class="d up">new</span>` : `<span class="d flat">–</span>`; const v=(cur-prev)/prev; if (Math.abs(v)<.01) return `<span class="d flat">0%</span>`; return `<span class="d ${v>0?"up":"down"}">${v>0?"+":""}${(v*100).toFixed(0)}%</span>`; };
+function renderTable(){
+  $("thead").innerHTML = COLS.map(c => `<th data-k="${c.k}" ${S.sort===c.k?`aria-sort="${S.asc?"ascending":"descending"}"`:""}><span>${c.l}</span></th>`).join("");
+  const view = S.view === "blog" ? "blog" : "page";
+  $("tableTitle").textContent = view === "blog" ? "All blogs" : "All pages";
+  let rows = S.rows.filter(o => (view === "all" || o.type === view) && (o.orgS[0]+o.orgS[1]+o.totS[0]+o.clicks[0]+o.clicks[1]+o.impr[0] > 0));
+  if (S.q) rows = rows.filter(o => o.p.toLowerCase().includes(S.q.toLowerCase()));
+  if (S.status) rows = rows.filter(o => o.status === S.status);
+  rows.sort((a,b) => { const x = val(a,S.sort), y = val(b,S.sort); const r = typeof x === "string" ? x.localeCompare(y) : x - y; return S.asc ? r : -r; });
+  const pages = Math.max(1, Math.ceil(rows.length/PER)); S.page = Math.min(S.page, pages-1);
+  const slice = rows.slice(S.page*PER, S.page*PER+PER);
+  const blogs = S.rows.filter(o=>o.type==="blog").length;
+  $("tableHint").textContent = S.rows.length ? `${rows.length.toLocaleString()} URLs · ${blogs} blogs tracked` : "";
+  const d = cellDelta;
+  const statusLbl = { down:"Dropping", up:"Improving", new:"New", flat:"Stable" };
+  $("tbody").innerHTML = !S.rows.length ? `<tr><td colspan="10" class="empty" style="text-align:center">${S.custom ? "Page-by-page data for custom dates hasn't been prepared yet. Choose 7D, 28D or 90D to see every page now." : "Pages and blogs load here with organic and total traffic, clicks, impressions and bounce rate."}</td></tr>` :
+    !slice.length ? `<tr><td colspan="10" class="empty" style="text-align:center">No URLs match these filters.</td></tr>` :
+    slice.map(o => `<tr>
+      <td class="url" title="${esc(o.p)}"><span class="tag ${o.type}">${o.type==="blog"?"BLOG":"PAGE"}</span><a href="${SITE}${esc(o.p)}" target="_blank" rel="noopener">${esc(o.p)}</a></td>
+      <td>${fmt(o.orgS[0])}${d(o.orgS[0],o.orgS[1])}</td>
+      <td>${fmt(o.totS[0])}${d(o.totS[0],o.totS[1])}</td>
+      <td>${fmt(o.clicks[0])}${d(o.clicks[0],o.clicks[1])}</td>
+      <td>${fmt(o.impr[0])}${d(o.impr[0],o.impr[1])}</td>
+      <td>${o.impr[0]?pctFmt(o.clicks[0]/o.impr[0]):"–"}</td>
+      <td>${o.pos[0]!=null?o.pos[0].toFixed(1):"–"}${d(o.pos[0],o.pos[1],{abs:true})}</td>
+      <td>${pctFmt(o.bOrg[0])}${d(o.bOrg[0],o.bOrg[1],{pp:true})}</td>
+      <td>${pctFmt(o.eng[0])}</td>
+      <td><span class="pill ${o.status}">${statusLbl[o.status]}</span></td></tr>`).join("");
+  $("pageInfo").textContent = rows.length ? `Showing ${S.page*PER+1}–${S.page*PER+slice.length} of ${rows.length.toLocaleString()}` : "";
+  $("prevPg").disabled = S.page === 0; $("nextPg").disabled = S.page >= pages-1;
+}
+
+const flag = a2 => /^[A-Z]{2}$/.test(a2) && a2 !== "ZZ" ? String.fromCodePoint(...[...a2].map(c => 127397 + c.charCodeAt(0))) : "🌐";
+// The markets Klenty tracks, in display order
+const TRACKED = ["US","GB","CA","FR","IN","AU","DE","AE"];
+const COUNTRY_NAMES = { US:"United States", GB:"United Kingdom", CA:"Canada", FR:"France", IN:"India", AU:"Australia", DE:"Germany", AE:"UAE" };
+const VIEWS = {
+  overview:  { title: "Overview",  show: ["kpis", "overviewGrid", "trendCard", "alertsCard"] },
+  page:      { title: "Pages",     show: ["segKpis", "tableCard"] },
+  blog:      { title: "Blogs",     show: ["segKpis", "tableCard"] },
+  countries: { title: "Countries", show: ["cpCard"] },
+  alerts:    { title: "Alerts",    show: ["overviewGrid", "alertsCard"] },
+};
+function applyView(){
+  if (!VIEWS[S.view]) S.view = "overview";
+  const v = VIEWS[S.view];
+  ["kpis","segKpis","overviewGrid","trendCard","alertsCard","cpCard","tableCard"].forEach(id => $(id).hidden = !v.show.includes(id));
+  $("main").dataset.view = S.view;
+  $("viewTitle").textContent = v.title;
+  $("alertType").hidden = S.view !== "alerts";
+  document.querySelectorAll("[data-at]").forEach(b => b.setAttribute("aria-pressed", b.dataset.at === S.at));
+  document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.view === S.view));
+  if (S.view === "page" || S.view === "blog") renderSegKpis();
+  if (S.view === "countries") { subscribeCp(); renderCountryPages(); }
+}
+function renderSegKpis(){
+  const type = S.view, list = S.rows.filter(o => o.type === type).map(classify);
+  const sum = (k, i) => list.reduce((t, o) => t + (o[k][i] || 0), 0);
+  const label = type === "blog" ? "blogs" : "pages";
+  const tile = (lab, cur, prev, sub) => `<div class="kpi"><div class="lab"><span>${lab}</span><span>${sub}</span></div><div class="val num ${S.rows.length || S.kpi ? "" : "skel"}">${S.rows.length ? fmt(cur) : S.kpi ? "–" : "0000"}</div><div class="row">${S.rows.length && prev != null ? deltaHTML(cur, prev) + " <span>vs prev</span>" : ""}</div></div>`;
+  const down = list.filter(o => o.status === "down").length, up = list.filter(o => o.status === "up").length;
+  $("segKpis").innerHTML =
+    tile("Organic sessions", sum("orgS",0), sum("orgS",1), "all " + label) +
+    tile("Total sessions", sum("totS",0), sum("totS",1), "all channels") +
+    tile("Clicks", sum("clicks",0), sum("clicks",1), "GSC") +
+    tile("Impressions", sum("impr",0), sum("impr",1), "GSC") +
+    `<div class="kpi"><div class="lab"><span>${type === "blog" ? "Blogs" : "Pages"} tracked</span><span></span></div><div class="val num">${S.rows.length ? list.filter(o => o.orgS[0] + o.totS[0] + o.clicks[0] + o.impr[0] > 0).length.toLocaleString() : "–"}</div><div class="row"><span class="delta down">${down} dropping</span> <span class="delta up">${up} improving</span></div></div>`;
+}
+
+const CPCOLS = [
+  { k:"p", l:"Page" }, { k:"orgS", l:"Organic sessions" }, { k:"totS", l:"Total sessions" }, { k:"clicks", l:"Clicks" },
+  { k:"impr", l:"Impressions" }, { k:"ctr", l:"CTR" }, { k:"pos", l:"Avg position" }, { k:"bOrg", l:"Bounce (organic)" }, { k:"status", l:"Status" },
+];
+const cpKey = () => S.custom ? (presetId() ? "cp_p_" + presetId() : "cp_custom") : "cp_d" + S.days;
+function cpData(){
+  const d = getDoc(cpKey());
+  if (!d) return null;
+  if (S.custom && !(d.custom && d.custom.start === S.custom.start && d.custom.end === S.custom.end)) return null;
+  return d;
+}
+function renderCountryPages(){
+  const name = a2 => COUNTRY_NAMES[a2] || a2;
+  $("cpChips").innerHTML = TRACKED.map(a2 => `<button class="chip" data-cc="${a2}" aria-pressed="${a2 === S.cpC}"><span>${flag(a2)}</span>${esc(name(a2))}</button>`).join("");
+  document.querySelectorAll("#cpType button").forEach(b => b.setAttribute("aria-pressed", b.dataset.ct === S.cpT));
+  $("cpTitle").textContent = `Top pages in ${name(S.cpC)}`;
+  $("cpthead").innerHTML = CPCOLS.map(c => `<th data-k="${c.k}" ${S.cpSort===c.k?`aria-sort="${S.cpAsc?"ascending":"descending"}"`:""}><span>${c.l}</span></th>`).join("");
+  const d = cpData();
+  if (!d) {
+    $("cptbody").innerHTML = `<tr><td colspan="9" class="empty" style="text-align:center">${S.custom ? "Country pages for custom dates haven't been prepared yet. Choose 7D, 28D or 90D to see them now." : "Loading pages for this country…"}</td></tr>`;
+    $("cpInfo").textContent = ""; $("cpHint").textContent = ""; return;
+  }
+  const raw = d.byCountry[S.cpC] || [];
+  let rows = raw.map(r => classify({ p: r[0], type: typeOf(r[0]), orgS: [r[1], r[2]], totS: [r[3], r[4]], bOrg: [r[5], r[6]], clicks: [r[7], r[8]], impr: [r[9], r[10]], pos: [r[11], r[12]] }));
+  if (S.cpT !== "all") rows = rows.filter(o => o.type === S.cpT);
+  if (S.cpq) rows = rows.filter(o => o.p.toLowerCase().includes(S.cpq.toLowerCase()));
+  rows.sort((a,b) => { const x = val(a,S.cpSort), y = val(b,S.cpSort); const r = typeof x === "string" ? x.localeCompare(y) : x - y; return S.cpAsc ? r : -r; });
+  const total = (d.pagesTotal || {})[S.cpC] || raw.length;
+  $("cpHint").textContent = `Top ${raw.length} of ${total.toLocaleString()} URLs with traffic from ${name(S.cpC)}`;
+  const statusLbl = { down:"Dropping", up:"Improving", new:"New", flat:"Stable" }, dl = cellDelta;
+  $("cptbody").innerHTML = rows.map(o => `<tr>
+      <td class="url" title="${esc(o.p)}"><span class="tag ${o.type}">${o.type==="blog"?"BLOG":"PAGE"}</span><a href="${SITE}${esc(o.p)}" target="_blank" rel="noopener">${esc(o.p)}</a></td>
+      <td>${fmt(o.orgS[0])}${dl(o.orgS[0],o.orgS[1])}</td>
+      <td>${fmt(o.totS[0])}${dl(o.totS[0],o.totS[1])}</td>
+      <td>${fmt(o.clicks[0])}${dl(o.clicks[0],o.clicks[1])}</td>
+      <td>${fmt(o.impr[0])}${dl(o.impr[0],o.impr[1])}</td>
+      <td>${o.impr[0]?pctFmt(o.clicks[0]/o.impr[0]):"–"}</td>
+      <td>${o.pos[0]!=null?o.pos[0].toFixed(1):"–"}${dl(o.pos[0],o.pos[1],{abs:true})}</td>
+      <td>${pctFmt(o.bOrg[0])}${dl(o.bOrg[0],o.bOrg[1],{pp:true})}</td>
+      <td><span class="pill ${o.status}">${statusLbl[o.status]}</span></td></tr>`).join("") || `<tr><td colspan="9" class="empty" style="text-align:center">No pages match.</td></tr>`;
+  $("cpInfo").textContent = rows.length ? `${rows.length} URLs shown` : "";
+}
+
+function render(){
+  document.querySelectorAll("#rangeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.days === "custom" ? !!S.custom : !S.custom && +b.dataset.days === S.days));
+  $("customBtn").textContent = S.custom ? `${shortDate(S.custom.start)} – ${shortDate(S.custom.end)}` : "Custom";
+  document.querySelectorAll("#trendSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === S.trend));
+  applyView();
+  document.querySelectorAll("[data-af]").forEach(b => b.setAttribute("aria-pressed", b.dataset.af === S.af));
+  $("thrSel").value = String(S.thr);
+  renderKpis(); renderChart(); renderAlerts(); renderTable();
+}
+
+/* ---------- UI helpers ---------- */
+function setDot(id, st){ $(id).className = "dot " + st; }
+function showBanner(h, p, withSample){
+  const el = $("banner"); el.hidden = false; el.className = "banner";
+  el.innerHTML = `<div><h3>${esc(h)}</h3><p>${esc(p)}</p><div class="actions">${withSample?'<button class="btn ghost" id="bSample">Preview with sample data</button>':""}</div></div>`;
+  const s = $("bSample"); if (s) s.onclick = loadSample;
+}
+function hideBanner(){ $("banner").hidden = true; }
+
+/* ---------- sample data (clearly labelled, never the user's figures) ---------- */
+function loadSample(){
+  S.sample = true;
+  let seed = 7; const rnd = () => (seed = (seed*16807)%2147483647)/2147483647;
+  const n = S.days, mk = (base, drift) => { const prev=[],cur=[]; for(let i=0;i<n*2;i++){ const v = Math.round(base*(1+drift*(i/(2*n)))*(0.8+0.4*rnd())*((i%7===5||i%7===6)?0.6:1)); const d = iso(addDays(new Date(), i-2*n)); (i<n?prev:cur).push({d,v}); } return {prev,cur}; };
+  S.series = { org: mk(400,.2), tot: mk(900,.1), clicks: mk(150,.15), impr: mk(14000,.3) };
+  const sum = a => a.reduce((t,x)=>t+x.v,0);
+  S.kpi = { org:[sum(S.series.org.cur),sum(S.series.org.prev)], tot:[sum(S.series.tot.cur),sum(S.series.tot.prev)], bOrg:[.42,.45], bTot:[.58,.6],
+    clicks:[sum(S.series.clicks.cur),sum(S.series.clicks.prev)], impr:[sum(S.series.impr.cur),sum(S.series.impr.prev)], pos:[14.2,15.1] };
+  const paths = ["/","/pricing","/sales-dialer","/parallel-dialer","/power-dialer","/integrations","/blog/example-cold-calling-guide","/blog/example-sales-cadence","/blog/example-connect-rate","/blog/example-email-templates","/blog/example-sdr-metrics","/blog/example-call-scripts"];
+  S.rows = paths.map((p,i) => { const b = 40+rnd()*800, f = 0.5+rnd()*1.2; const im = b*40;
+    return { p, type:typeOf(p), orgS:[Math.round(b*f),Math.round(b)], totS:[Math.round(b*f*1.8),Math.round(b*1.8)], bOrg:[.3+rnd()*.4,.3+rnd()*.4], eng:[.4+rnd()*.4,null],
+      clicks:[Math.round(b*.4*f),Math.round(b*.4)], impr:[Math.round(im*(0.6+rnd())),Math.round(im)], pos:[3+rnd()*20,3+rnd()*20] }; });
+  S.rt = { total: 12, top: [{n:"Sample page A",v:5},{n:"Sample page B",v:4},{n:"Sample page C",v:3}] };
+  const el = $("banner"); el.hidden = false; el.className = "banner sample";
+  el.innerHTML = `<div><h3>Sample data</h3><p>These numbers are made up to show the layout. They are not Klenty's figures. Reload the page to return to the synced data.</p></div>`;
+  $("rangeLabel").textContent = "Sample data · not live";
+  render();
+}
+
+/* ---------- events ---------- */
+document.querySelectorAll("#rangeSeg button").forEach(b => b.onclick = () => {
+  if (b.dataset.days === "custom") { openCustom(); return; }
+  $("customPop").hidden = true; S.custom = null; S.days = +b.dataset.days; save(); S.page = 0; render(); if (S.sample) loadSample(); else showRange();
+});
+function openCustom(){
+  const pop = $("customPop"); if (!pop.hidden) { pop.hidden = true; return; }
+  const yest = iso(addDays(todayUTC(), -1)), min = iso(addDays(todayUTC(), -485));
+  ["cFrom","cTo"].forEach(id => { $(id).max = yest; $(id).min = min; });
+  $("cFrom").value = S.custom ? S.custom.start : iso(addDays(todayUTC(), -S.days));
+  $("cTo").value = S.custom ? S.custom.end : yest;
+  $("cErr").hidden = true; pop.hidden = false; $("cFrom").focus();
+  document.querySelector('[data-preset="mtd"]').hidden = !presetRanges().mtd;
+}
+document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => {
+  const r = presetRanges()[b.dataset.preset];
+  if (!r) return;
+  $("cFrom").value = r[0]; $("cTo").value = r[1];
+  $("customPop").requestSubmit();
+});
+$("cCancel").onclick = () => { $("customPop").hidden = true; };
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("customPop").hidden = true; });
+document.addEventListener("click", e => { const pop = $("customPop"); if (!pop.hidden && !e.target.closest(".range-wrap")) pop.hidden = true; });
+$("customPop").addEventListener("submit", e => {
+  e.preventDefault();
+  const a = $("cFrom").value, b = $("cTo").value, err = $("cErr");
+  const fail = t => { err.textContent = t; err.hidden = false; };
+  if (!a || !b) return fail("Choose both dates.");
+  if (a > b) return fail("The start date must be before the end date.");
+  if (b > iso(addDays(todayUTC(), -1))) return fail("The end date can be yesterday at the latest.");
+  if (a < iso(addDays(todayUTC(), -485))) return fail("Data goes back 16 months. Choose a later start date.");
+  $("cErr").hidden = true;
+  $("customPop").hidden = true; S.custom = { start: a, end: b }; save(); S.page = 0; render(); showRange();
+});
+document.querySelectorAll("#trendSeg button").forEach(b => b.onclick = () => { S.trend = b.dataset.m; save(); render(); });
+document.querySelectorAll(".nav button").forEach(b => b.onclick = () => { S.view = b.dataset.view; S.page = 0; S.q = ""; $("q").value = ""; S.status = ""; $("statusSel").value = ""; save(); render(); window.scrollTo({ top: 0 }); });
+document.querySelectorAll("[data-at]").forEach(b => b.onclick = () => { S.at = b.dataset.at; renderAlerts(); });
+$("cpChips").onclick = e => { const b = e.target.closest("[data-cc]"); if (!b) return; S.cpC = b.dataset.cc; renderCountryPages(); };
+document.querySelectorAll("#cpType button").forEach(b => b.onclick = () => { S.cpT = b.dataset.ct; renderCountryPages(); });
+$("cpq").oninput = e => { S.cpq = e.target.value; renderCountryPages(); };
+$("cpthead").onclick = e => { const th = e.target.closest("th"); if (!th) return; const k = th.dataset.k; if (S.cpSort === k) S.cpAsc = !S.cpAsc; else { S.cpSort = k; S.cpAsc = k === "p" || k === "pos" || k === "status"; } renderCountryPages(); };
+document.querySelectorAll("[data-af]").forEach(b => b.onclick = () => { S.af = b.dataset.af; renderAlerts(); document.querySelectorAll("[data-af]").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+$("thrSel").onchange = e => { S.thr = +e.target.value; save(); render(); };
+$("statusSel").onchange = e => { S.status = e.target.value; S.page = 0; renderTable(); };
+$("q").oninput = e => { S.q = e.target.value; S.page = 0; renderTable(); };
+$("prevPg").onclick = () => { S.page--; renderTable(); };
+$("nextPg").onclick = () => { S.page++; renderTable(); };
+$("thead").onclick = e => { const th = e.target.closest("th"); if (!th) return; const k = th.dataset.k; if (S.sort === k) S.asc = !S.asc; else { S.sort = k; S.asc = k === "p" || k === "pos" || k === "status"; } renderTable(); };
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(renderChart, 120); });
+
+
+/* ---------- synced data: cached copy paints instantly; files in data/ are refreshed by a scheduled GitHub Action ---------- */
+let loadedCp = null;
+let requested = null;
+const docs = {}, seen = {};
+const valid = x => !!(x && x.kpi && x.series && Array.isArray(x.rows) && x.ga && x.gsc);
+const validDaily = x => !!(x && Array.isArray(x.rows) && Array.isArray(x.cols));
+const validCp = x => !!(x && x.byCountry && x.ga && x.gsc);
+const checks = id => id === "daily" ? validDaily : id.startsWith("cp_") ? validCp : valid;
+function readCache(id){ try { const x = JSON.parse(localStorage.getItem("seoPulse." + id) || "null"); return checks(id)(x) ? x : null; } catch (e) { return null; } }
+function writeCache(id, doc){ try { localStorage.setItem("seoPulse." + id, JSON.stringify(doc)); } catch (e) {} }
+const getDoc = id => docs[id] || readCache(id);
+const rangeKey = () => S.custom ? (presetId() ? "p_" + presetId() : "custom") : "d" + S.days;
+
+function showRange(){
+  subscribe();
+  if (S.custom) { showCustom(); return; }
+  const doc = getDoc(rangeKey());
+  if (doc) apply(doc); else { clearData(); render(); $("rangeLabel").textContent = "Loading synced data…"; }
+}
+function clearData(){ S.kpi = null; S.series = null; S.rows = []; }
+function subscribe(){
+  load("daily");
+  if (rangeKey() !== "custom") load(rangeKey());
+}
+async function load(id, force){
+  if (id === "custom" || (seen[id] && !force)) return;
+  seen[id] = true;
+  try {
+    const r = await fetch("data/" + id + ".json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) { if (id === rangeKey() && !S.custom && !getDoc(id)) showBanner("No synced data yet", "This range hasn't been synced yet. It appears after the next scheduled refresh.", true); return; }
+    const body = await r.json();
+    if (!checks(id)(body)) return;
+    docs[id] = body; writeCache(id, body);
+    if (S.sample) return;
+    if (id.startsWith("cp_")) { if (id === cpKey() && S.view === "countries") renderCountryPages(); return; }
+    if (S.custom && (id === "daily" || id === rangeKey())) showCustom();
+    else if (!S.custom && id === rangeKey()) apply(body);
+  } catch (err) {
+    seen[id] = false;
+    if (!getDoc(id)) showBanner("Couldn't load the data", (err && err.message) || "Reload the page to try again.", false);
+  }
+}
+/* re-check every 10 minutes; reload anything the last scheduled refresh changed */
+let lastMeta = null;
+async function checkFresh(){
+  try {
+    const r = await fetch("data/meta.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return;
+    const m = await r.json();
+    if (lastMeta) Object.keys(m).forEach(id => { if (m[id] !== lastMeta[id] && seen[id]) load(id, true); });
+    lastMeta = m;
+  } catch (e) {}
+}
+setInterval(() => { if (!document.hidden) checkFresh(); }, 10 * 60 * 1000);
+
+function subscribeCp(){ load(cpKey()); }
+
+/* custom range: totals + trend from 16 months of daily site data; page/country tables from an on-demand sync */
+function showCustom(){
+  const { start, end } = S.custom, n = dayDiff(start, end) + 1;
+  const pEnd = iso(addDays(new Date(start + "T00:00:00Z"), -1)), pStart = iso(addDays(new Date(pEnd + "T00:00:00Z"), -(n - 1)));
+  const c = getDoc(rangeKey());
+  const ready = c && c.custom && c.custom.start === start && c.custom.end === end;
+  if (ready) { apply(c); return; }
+  const daily = getDoc("daily");
+  clearData();
+  if (daily) {
+    const by = {}; daily.rows.forEach(r => by[r[0]] = r);
+    const days = (a) => Array.from({ length: n }, (_, i) => iso(addDays(new Date(a + "T00:00:00Z"), i)));
+    const cur = days(start), prev = days(pStart);
+    const agg = list => {
+      let org = 0, bw = 0, tot = 0, cl = 0, im = 0, pw = 0, gsc = 0;
+      list.forEach(d => { const r = by[d]; if (!r) return; org += r[1]; bw += r[1] * r[2]; tot += r[3]; if (r[4] != null) { gsc++; cl += r[4]; im += r[5]; pw += r[6] * r[5]; } });
+      return { org, b: org ? bw / org : null, tot, cl: gsc ? cl : null, im: gsc ? im : null, pos: im ? pw / im : null };
+    };
+    const A = agg(cur), B = agg(prev);
+    S.kpi = { org: [A.org, B.org], tot: [A.tot, B.tot], bOrg: [A.b, B.b], bTot: [null, null], clicks: [A.cl, B.cl], impr: [A.im, B.im], pos: [A.pos, B.pos] };
+    const ser = col => ({ cur: cur.map(d => ({ d, v: by[d] ? by[d][col] : null })), prev: prev.map(d => ({ d, v: by[d] ? by[d][col] : null })) });
+    S.series = { org: ser(1), tot: ser(3), clicks: ser(4), impr: ser(5) };
+  }
+  $("rangeLabel").textContent = `Custom ${start} → ${end} vs ${pStart} → ${pEnd}`;
+  if (presetId()) showInfo("Loading these dates", "The totals and trend above are ready. Page, blog and country tables for this range are loading.");
+  else requestCustom(start, end);
+  render();
+}
+function requestCustom(start, end){
+  showInfo("Totals and trend only for custom dates", "The totals and trend above cover your dates. Page, blog and country tables are prebuilt for 7D, 28D, 90D, Month to date, Last month, Last 6 months and Last 12 months. Choose one of those for full tables.");
+}
+function showInfo(h, p){ const el = $("banner"); el.hidden = false; el.className = "banner"; el.innerHTML = `<div><h3>${esc(h)}</h3><p>${esc(p)}</p><div class="actions"><button class="btn ghost" id="bBack">Back to last 28 days</button></div></div>`; $("bBack").onclick = () => document.querySelector('#rangeSeg [data-days="28"]').click(); }
+
+function apply(d){
+  try { applyDoc(d); } catch (e) { showBanner("Couldn't show the synced data", (e && e.message) || "Reload the page to try again.", false); }
+}
+function applyDoc(d){
+  hideBanner();
+  const toPts = a => a.map(p => ({ d: p[0], v: p[1] }));
+  S.kpi = d.kpi;
+  S.series = {}; Object.keys(d.series).forEach(k => S.series[k] = { cur: toPts(d.series[k].cur), prev: toPts(d.series[k].prev) });
+  S.rows = d.rows.map(r => ({ p: r[0], type: typeOf(r[0]), orgS: [r[1], r[2]], totS: [r[3], r[4]], bOrg: [r[5], r[6]], eng: [r[7], null], clicks: [r[8], r[9]], impr: [r[10], r[11]], pos: [r[12], r[13]] }));
+  S.rt = (getDoc("d28") || {}).rt || d.rt || null;
+  const at = new Date(d.generatedAt);
+  const when = at.toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  $("rangeLabel").textContent = (d.custom ? `Custom ${d.custom.start} → ${d.custom.end} vs ${d.ga.pStart} → ${d.ga.pEnd} · ` : "") + `Synced ${when} · Analytics ${d.ga.start} → ${d.ga.end} · Search Console ${d.gsc.start} → ${d.gsc.end}` + (d.custom ? "" : ` · vs previous ${d.days} days`);
+  if (!d.custom) {
+    const stale = Date.now() - at > 5 * 3600 * 1000;
+    setDot("dotGa", stale ? "wait" : "ok"); setDot("dotGsc", stale ? "wait" : "ok");
+    $("syncAge").textContent = (stale ? "Last sync " : "Synced ") + when;
+  }
+  render();
+}
+
+render();
+showRange();
+checkFresh();
+if (S.view === "countries") subscribeCp();
+})();
+</script>
+
+</body></html>
